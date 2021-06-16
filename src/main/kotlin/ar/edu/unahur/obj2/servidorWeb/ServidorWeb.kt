@@ -19,21 +19,11 @@ class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
 class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido){
 
   fun verificacionDelProtocolo() =  if (pedido.protocolo() == "http") 200 else 501
-  fun moduloAceptaPedido(): Boolean = ServidorWeb.modulosHabilitados.any {  modulo -> modulo.extensioneSoportadas.any{ext -> ext.toString() == pedido.extension()}  }
-
-/*
-  fun comparaExtension(): Boolean{
-    val extensionSimilar = pedido.extension() == this.toString()
-    return extensionSimilar
-  }*/
-
+  fun moduloAceptaPedido(): Boolean = ServidorWeb.modulosHabilitados.any {  modulo -> modulo.extensioneSoportadas.any{ext -> ext == pedido.extension()}}
 }
 
-class Modulo(var extensioneSoportadas: MutableList<Extension>,val texto: String,val tiempo: Int){
-  fun puedeSoportarExtension(extension: Extension): Boolean{
+class Modulo(var extensioneSoportadas: MutableList<String>,val texto: String,val tiempo: Int){
+  fun puedeSoportarExtension(extension: String): Boolean{
     return extensioneSoportadas.contains(extension)
   }
-}
-class Extension{
-   //Agregar futuros metodos
 }
