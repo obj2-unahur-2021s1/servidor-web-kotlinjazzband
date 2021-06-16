@@ -1,6 +1,8 @@
 package ar.edu.unahur.obj2.servidorWeb
 
 import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.booleans.shouldBeFalse
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
@@ -40,6 +42,59 @@ class ServidorWebTest : DescribeSpec({
 
     }
 
+  }
+  //Descomentar en test para moduloAceptaPedido()
+  //val fecha2 = LocalDateTime.of(2021, 6, 15, 14, 17, 22)
+  //val order3 = Pedido("207.46.13.8","http://pepito.com.ar/documentos/doc1.jpg", fecha2)
+  //val order4 = Pedido("207.46.130.9","https://pepito.com.ar/documentos/doc1.html", fecha2)
+
+  //val reply3 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order3)
+  //val reply4 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order4)
+
+  val jpg = Extension()
+  val png = Extension()
+  val gif = Extension()
+  val docx = Extension()
+  val odt = Extension()
+  val txt = Extension()
+  val html = Extension()
+  val mpg = Extension()
+  val avi = Extension()
+  val mpeg = Extension()
+
+
+  val unModuloImagen= Modulo(mutableListOf(jpg,png,gif),"Es de imagen",10)
+  val unModuloTexto= Modulo(mutableListOf(docx,odt,txt,html),"Es de texto",10)
+  val unModuloVideo= Modulo(mutableListOf(mpg,avi,mpeg),"Es de video",10)
+
+//Agregamos modulo a lista de modulos habilitados en servidor
+  ServidorWeb.modulosHabilitados.add(unModuloImagen)
+
+  describe("Pedido y Respuesta al servidor con Módulos") {
+    it("El modulo un Modulo Imagen agregado puede soportar extensiones jpg gif y png"){
+      unModuloImagen.puedeSoportarExtension(jpg).shouldBeTrue()
+      unModuloImagen.puedeSoportarExtension(gif).shouldBeTrue()
+      unModuloImagen.puedeSoportarExtension(png).shouldBeTrue()
+    }
+
+    it("El modulo un Modulo Texto agregado puede soportar extensiones docx, odt, txt, html"){
+      unModuloTexto.puedeSoportarExtension(docx).shouldBeTrue()
+      unModuloTexto.puedeSoportarExtension(odt).shouldBeTrue()
+      unModuloTexto.puedeSoportarExtension(txt).shouldBeTrue()
+      unModuloTexto.puedeSoportarExtension(html).shouldBeTrue()
+    }
+    it("El modulo un Modulo Video agregado puede soportar extensiones mpg avi mpeg"){
+      unModuloVideo.puedeSoportarExtension(mpg).shouldBeTrue()
+      unModuloVideo.puedeSoportarExtension(avi).shouldBeTrue()
+      unModuloVideo.puedeSoportarExtension(mpeg).shouldBeTrue()
+    }
+    it("Buscar modulos que acepten el pedido(en desarrollo)"){
+      //Descomentar en test para moduloAceptaPedido()
+      /*
+      reply3.moduloAceptaPedido().shouldBeFalse()
+      reply4.moduloAceptaPedido().shouldBeFalse()
+     */
+    }
   }
 
 })
