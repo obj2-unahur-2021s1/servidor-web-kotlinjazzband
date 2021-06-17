@@ -7,6 +7,7 @@ object ServidorWeb{
   fun agregarModulo(modulo: Modulo) = modulosHabilitados.add(modulo)
   fun quitarModulo(modulo: Modulo) = modulosHabilitados.remove(modulo)
   fun verificacionDelProtocolo(pedido: Pedido) =  if (pedido.protocolo() == "http") 200 else 501
+  fun moduloAceptaPedido(pedido: Pedido): Boolean = modulosHabilitados.any{  modulo -> modulo.extensioneSoportadas.any{ext -> ext == pedido.extension()} }
 }
 
 class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
@@ -20,5 +21,4 @@ class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val p
 
 class Modulo(var extensioneSoportadas: MutableList<String>,val texto: String,val tiempo: Int){
   fun puedeSoportarExtension(extension: String): Boolean = extensioneSoportadas.contains(extension)
-  fun moduloAceptaPedido(pedido: Pedido): Boolean = ServidorWeb.modulosHabilitados.any{  modulo -> modulo.extensioneSoportadas.any{ext -> ext == pedido.extension()} }
 }

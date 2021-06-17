@@ -44,17 +44,17 @@ class ServidorWebTest : DescribeSpec({
   val order4 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.html", fecha2) // era https
   val order5 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.avi", fecha1)
 
-  val reply3 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order3)
-  val reply4 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order4)
+  //val reply3 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order3)
+  //val reply4 = Respuesta(CodigoHttp.OK,"El servicio esta implementado",25,order4)
 
   val unModuloImagen= Modulo(mutableListOf("jpg","png","gif"),"Es de imagen",10)
   val unModuloTexto= Modulo(mutableListOf("docx","odt","txt","html"),"Es de texto",10)
   val unModuloVideo= Modulo(mutableListOf("mpg","avi","mpeg"),"Es de video",10)
 
-  //Agregamos modulo a lista de modulos habilitados en servidor
+  //Agregamos a modulo habilitados en ServidorWeb
   ServidorWeb.modulosHabilitados.add(unModuloImagen)
   ServidorWeb.modulosHabilitados.add(unModuloTexto)
-  ServidorWeb.modulosHabilitados.add(unModuloVideo)
+  //ServidorWeb.modulosHabilitados.add(unModuloVideo) // ** No agregamos modulo video para testear false
 
   describe("Pedido y Respuesta al servidor con Módulos") {
     it("El modulo unModuloImagen agregado puede soportar extensiones jpg gif y png"){
@@ -75,20 +75,10 @@ class ServidorWebTest : DescribeSpec({
       unModuloVideo.puedeSoportarExtension("mpeg").shouldBeTrue()
     }
     //order3 = jpg   order4 = html     order5 = avi
-    it("Verificar si unModuloImagen solo acepta imagenes caso jpg al pedido"){
-      unModuloImagen.moduloAceptaPedido(order4).shouldBeTrue()  // es html debería dar falso
-      unModuloImagen.moduloAceptaPedido(order3).shouldBeTrue()
-      unModuloImagen.moduloAceptaPedido(order5).shouldBeTrue() // es avi debería dar falso
-    }
-    it("Verificar si unModuloVideo solo acepta Video caso avi al pedido"){
-      unModuloVideo.moduloAceptaPedido(order4).shouldBeTrue()
-      unModuloVideo.moduloAceptaPedido(order3).shouldBeTrue()   // es jpg debería dar falso
-      unModuloVideo.moduloAceptaPedido(order5).shouldBeTrue()   // es avi debería dar falso
-    }
-    it("Verificar si unModuloTexto solo acepta documentos caso html al pedido"){
-      unModuloTexto.moduloAceptaPedido(order4).shouldBeTrue()
-      unModuloTexto.moduloAceptaPedido(order3).shouldBeTrue()    // es jpg debería dar falso
-      unModuloTexto.moduloAceptaPedido(order5).shouldBeTrue()    // es avi debería dar falso
+    it("Verificar si ServidorWeb acepta imagenes y texto y rechaza video por falt ade modulo"){
+      ServidorWeb.moduloAceptaPedido(order3).shouldBeTrue()   //es jpg imagen
+      ServidorWeb.moduloAceptaPedido(order4).shouldBeTrue()  // es html texto
+      ServidorWeb.moduloAceptaPedido(order5).shouldBeFalse()   // es avi video
     }
   }
 
