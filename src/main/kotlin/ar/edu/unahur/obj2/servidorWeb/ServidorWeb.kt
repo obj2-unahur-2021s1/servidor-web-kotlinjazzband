@@ -19,7 +19,7 @@ object ServidorWeb{
 
   // OBVIAMENTE NO PUEDE SER ASI, PERO ES LO QUE CREO QUE TENDRÍA QUE PASAR ()
   fun rtaPtcl(pedido: Pedido, modulo: Modulo){
-    if ( pedido.protocolo() == "http" && modulo.moduloRespondeAlPedido(pedido) ){
+    if ( pedido.protocolo() == "http" && modulo.moduloPuedeProcesarPedido(pedido) ){
       fun refPedido() = pedido
       fun codigo() = CodigoHttp.OK
       fun body(): String = "Servicio Implementado"
@@ -49,27 +49,27 @@ object ServidorWeb{
 
 interface Modulo{
   val extensionesSoportadas: MutableList<String>
-  val texto: String
+  val body: String
   val tiempo: Int
   fun agregarExtension(extension: String) = extensionesSoportadas.add(extension)
   fun puedeSoportarExtension(extension: String): Boolean = extensionesSoportadas.contains(extension)
   fun moduloPuedeProcesarPedido(pedido:Pedido) = extensionesSoportadas.contains(pedido.extension())
-  fun moduloRespondeAlPedido(pedido: Pedido) = (moduloPuedeProcesarPedido(pedido))
+  //fun moduloRespondeAlPedido(pedido: Pedido) = (moduloPuedeProcesarPedido(pedido))
 
   }
-class ModuloImagen(val pedido: Pedido): Modulo{
-  override val extensionesSoportadas: MutableList<String> = mutableListOf("jpg","gif","png")
-  override val texto: String = "Esta es una imagen"
+class ModuloImagen: Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("tiff","psd","bmp")
+  override val body: String = "Esta es una imagen"
   override val tiempo: Int = 5
 }
-class ModuloVideo(val pedido: Pedido): Modulo{
-  override val extensionesSoportadas: MutableList<String> = mutableListOf("html","php","aspx")
-  override val texto: String = "Este es un video"
+class ModuloVideo: Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("mkv","mov","wmv")
+  override val body: String = "Este es un video"
   override val tiempo: Int = 15
 }
-class ModuloTexto(val pedido: Pedido): Modulo{
-  override val extensionesSoportadas: MutableList<String> = mutableListOf("html","docx","odt","txt")
-  override val texto: String = "Este es un texto"
+class ModuloTexto: Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("pdf","log","idx","dic")
+  override val body: String = "Este es un texto"
   override val tiempo: Int = 2
 }
 

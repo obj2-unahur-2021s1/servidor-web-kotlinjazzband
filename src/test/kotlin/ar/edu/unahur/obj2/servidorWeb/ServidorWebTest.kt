@@ -45,17 +45,17 @@ class ServidorWebTest : DescribeSpec({
   val order6 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.css", fecha2)
   val order7 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fecha1)
 
-  val unModuloImagen = ModuloImagen(order3)
+  val unModuloImagen = ModuloImagen()
   unModuloImagen.agregarExtension("jpg")
   unModuloImagen.agregarExtension("png")
   unModuloImagen.agregarExtension("gif")
 
-  val unModuloTexto = ModuloTexto(order4)
+  val unModuloTexto = ModuloTexto()
   unModuloTexto.agregarExtension("docx")
   unModuloTexto.agregarExtension("odt")
   unModuloTexto.agregarExtension("txt")
   unModuloTexto.agregarExtension("html")
-  val unModuloVideo = ModuloVideo(order5)
+  val unModuloVideo = ModuloVideo()
   unModuloVideo.agregarExtension("mpg")
   unModuloVideo.agregarExtension("avi")
   unModuloVideo.agregarExtension("mpeg")
@@ -66,22 +66,26 @@ class ServidorWebTest : DescribeSpec({
   ServidorWeb.modulosHabilitados.add(unModuloVideo)
 
   describe("Pedido y Respuesta al servidor con Módulos") {
-    it("El modulo unModuloImagen agregado puede soportar extensiones jpg gif y png"){
+    it("El modulo unModuloImagen agregado puede soportar extensiones jpg gif y png y otras que ya vienen precargadas"){
       unModuloImagen.puedeSoportarExtension("jpg").shouldBeTrue()
       unModuloImagen.puedeSoportarExtension("gif").shouldBeTrue()
       unModuloImagen.puedeSoportarExtension("png").shouldBeTrue()
+      unModuloImagen.puedeSoportarExtension("tiff").shouldBeTrue()
     }
 
-    it("El modulo unModuloTexto agregado puede soportar extensiones docx, odt, txt, html"){
+    it("El modulo unModuloTexto agregado puede soportar extensiones docx, odt, txt, html y otras que ya vienen precargadas"){
       unModuloTexto.puedeSoportarExtension("docx").shouldBeTrue()
       unModuloTexto.puedeSoportarExtension("odt").shouldBeTrue()
       unModuloTexto.puedeSoportarExtension("txt").shouldBeTrue()
       unModuloTexto.puedeSoportarExtension("html").shouldBeTrue()
+      unModuloTexto.puedeSoportarExtension("pdf").shouldBeTrue()
+
     }
-    it("El modulo unModuloVideo agregado puede soportar extensiones mpg avi mpeg"){
+    it("El modulo unModuloVideo agregado puede soportar extensiones mpg avi mpeg y otras que ya vienen precargadas"){
       unModuloVideo.puedeSoportarExtension("mpg").shouldBeTrue()
       unModuloVideo.puedeSoportarExtension("avi").shouldBeTrue()
       unModuloVideo.puedeSoportarExtension("mpeg").shouldBeTrue()
+      unModuloVideo.puedeSoportarExtension("mov").shouldBeTrue()
     }
     it("Verificar si ServidorWeb acepta imagenes y texto y rechaza css y json por falta de modulo"){
       ServidorWeb.serverPuedeResponderPedido(order1).shouldBeTrue()     // es html texto
@@ -95,9 +99,9 @@ class ServidorWebTest : DescribeSpec({
   }
   describe("Modulo Soporta pedido"){
     it("Probar el mensaje de acepta"){
-      //(unModuloVideo.mensaje.body() == " ").shouldBeTrue()
-      //(unModuloVideo.mensaje.codigo() == CodigoHttp.NOT_FOUND).shouldBeTrue()
-      //(unModuloVideo.mensaje.tiempo() == 10 ).shouldBeTrue()
+      (unModuloVideo.body).shouldBe("Este es un video")
+      //(unModuloVideo.codigo() == CodigoHttp.NOT_FOUND).shouldBeTrue()
+      (unModuloVideo.tiempo == 15 ).shouldBeTrue()
     }
     it("Modulo puede soportar pedido"){
       unModuloVideo.moduloPuedeProcesarPedido(order3).shouldBeFalse()
