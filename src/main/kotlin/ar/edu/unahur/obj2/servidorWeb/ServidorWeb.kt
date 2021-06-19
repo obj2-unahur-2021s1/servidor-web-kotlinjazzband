@@ -13,11 +13,9 @@ object ServidorWeb{
   val ipSospechosas:MutableList<String> = mutableListOf()
 
   fun agregarIpSospechosa(string: String) = ipSospechosas.add(string)
-  fun agregarModulo(modulo: Modulo) = modulosHabilitados.add(modulo)
-  fun quitarModulo(modulo: Modulo) = modulosHabilitados.remove(modulo)
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
   // El servidor debe delegar al modulo si puede responder
-  fun serverPuedeResponderPedido(pedido: Pedido): Boolean = ServidorWeb.modulosHabilitados.any{ m -> m.moduloPuedeProcesarPedido(pedido) }
+  fun serverPuedeResponderPedido(pedido: Pedido): Boolean = modulosHabilitados.any{ m -> m.moduloPuedeProcesarPedido(pedido) }
 
   // OBVIAMENTE NO PUEDE SER ASI, PERO ES LO QUE CREO QUE TENDRÍA QUE PASAR ()
   fun rtaPtcl(pedido: Pedido, modulo: Modulo){
@@ -49,18 +47,31 @@ object ServidorWeb{
 
 }
 
-abstract class Modulo(pedido: Pedido) {
-  val extensionesSoportadas: MutableList<String> = mutableListOf()
-
+interface Modulo{
+  val extensionesSoportadas: MutableList<String>
+  val texto: String
+  val tiempo: Int
   fun agregarExtension(extension: String) = extensionesSoportadas.add(extension)
   fun puedeSoportarExtension(extension: String): Boolean = extensionesSoportadas.contains(extension)
   fun moduloPuedeProcesarPedido(pedido:Pedido) = extensionesSoportadas.contains(pedido.extension())
   fun moduloRespondeAlPedido(pedido: Pedido) = (moduloPuedeProcesarPedido(pedido))
-}
-class Image(pedido: Pedido):Modulo(pedido){}
-class Texto(pedido: Pedido):Modulo(pedido){}
-class Video(pedido: Pedido):Modulo(pedido){}
 
+  }
+class ModuloImagen(val pedido: Pedido): Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("jpg","gif","png")
+  override val texto: String = "Esta es una imagen"
+  override val tiempo: Int = 5
+}
+class ModuloVideo(val pedido: Pedido): Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("html","php","aspx")
+  override val texto: String = "Este es un video"
+  override val tiempo: Int = 15
+}
+class ModuloTexto(val pedido: Pedido): Modulo{
+  override val extensionesSoportadas: MutableList<String> = mutableListOf("html","docx","odt","txt")
+  override val texto: String = "Este es un texto"
+  override val tiempo: Int = 2
+}
 
 class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido, respuesta: MensajeDeRespuesta){
 //  fun CodigoHttp() = this.codigo

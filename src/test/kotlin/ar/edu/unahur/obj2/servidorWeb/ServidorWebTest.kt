@@ -45,17 +45,17 @@ class ServidorWebTest : DescribeSpec({
   val order6 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.css", fecha2)
   val order7 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fecha1)
 
-  val unModuloImagen = Image(order3)
+  val unModuloImagen = ModuloImagen(order3)
   unModuloImagen.agregarExtension("jpg")
   unModuloImagen.agregarExtension("png")
   unModuloImagen.agregarExtension("gif")
 
-  val unModuloTexto = Texto(order4)
+  val unModuloTexto = ModuloTexto(order4)
   unModuloTexto.agregarExtension("docx")
   unModuloTexto.agregarExtension("odt")
   unModuloTexto.agregarExtension("txt")
   unModuloTexto.agregarExtension("html")
-  val unModuloVideo = Video(order5)
+  val unModuloVideo = ModuloVideo(order5)
   unModuloVideo.agregarExtension("mpg")
   unModuloVideo.agregarExtension("avi")
   unModuloVideo.agregarExtension("mpeg")
@@ -63,7 +63,7 @@ class ServidorWebTest : DescribeSpec({
   //Agregamos a modulo habilitados en ServidorWeb
   ServidorWeb.modulosHabilitados.add(unModuloImagen)
   ServidorWeb.modulosHabilitados.add(unModuloTexto)
-  ServidorWeb.modulosHabilitados.add(unModuloVideo) // ** No agregamos modulo video para testear false
+  ServidorWeb.modulosHabilitados.add(unModuloVideo)
 
   describe("Pedido y Respuesta al servidor con Módulos") {
     it("El modulo unModuloImagen agregado puede soportar extensiones jpg gif y png"){
@@ -83,13 +83,13 @@ class ServidorWebTest : DescribeSpec({
       unModuloVideo.puedeSoportarExtension("avi").shouldBeTrue()
       unModuloVideo.puedeSoportarExtension("mpeg").shouldBeTrue()
     }
-    it("Verificar si ServidorWeb acepta imagenes y texto y rechaza video por falta de modulo"){
+    it("Verificar si ServidorWeb acepta imagenes y texto y rechaza css y json por falta de modulo"){
       ServidorWeb.serverPuedeResponderPedido(order1).shouldBeTrue()     // es html texto
       ServidorWeb.serverPuedeResponderPedido(order3).shouldBeTrue()     //es jpg imagen
       ServidorWeb.serverPuedeResponderPedido(order4).shouldBeTrue()     // es html texto
-      ServidorWeb.serverPuedeResponderPedido(order5).shouldBeTrue()     // es avi extension correcta modulo video no agregado
-      ServidorWeb.serverPuedeResponderPedido(order6).shouldBeFalse()    // es css
-      ServidorWeb.serverPuedeResponderPedido(order7).shouldBeFalse()    // es json
+      ServidorWeb.serverPuedeResponderPedido(order5).shouldBeTrue()     // es avi video
+      ServidorWeb.serverPuedeResponderPedido(order6).shouldBeFalse()    // es css, no hay modulo para esa extension
+      ServidorWeb.serverPuedeResponderPedido(order7).shouldBeFalse()    // es json, no hay modulo para esa extension
     }
 
   }
