@@ -61,6 +61,7 @@ class ServidorWebTest : DescribeSpec({
   unModuloVideo.agregarExtension("mpeg")
 
   //Agregamos a modulo habilitados en ServidorWeb
+
   ServidorWeb.modulosHabilitados.add(unModuloImagen)
   ServidorWeb.modulosHabilitados.add(unModuloTexto)
   ServidorWeb.modulosHabilitados.add(unModuloVideo)
@@ -99,9 +100,24 @@ class ServidorWebTest : DescribeSpec({
   }
   describe("Modulo Soporta pedido"){
     it("Probar el mensaje de acepta"){
+
       (unModuloVideo.body).shouldBe("Este es un video")
-      //(unModuloVideo.codigo() == CodigoHttp.NOT_FOUND).shouldBeTrue()
       (unModuloVideo.tiempo == 15 ).shouldBeTrue()
+
+      //Respuesta de Servidor para orden 5
+      ServidorWeb.respuestaPedidoModulo(order5).codigo.shouldBe(CodigoHttp.OK)
+      ServidorWeb.respuestaPedidoModulo(order5).body.shouldBe("Este es un video")
+      ServidorWeb.respuestaPedidoModulo(order5).tiempo.shouldBe(15)
+      ServidorWeb.respuestaPedidoModulo(order5).pedido.shouldBe(order5)
+    }
+
+
+    it("Probar el mensaje de denegar por falta de modulo "){
+      //Respuesta de Servidor para orden 6 sin modulo para css
+      ServidorWeb.respuestaPedidoModulo(order6).codigo.shouldBe(CodigoHttp.NOT_FOUND)
+      ServidorWeb.respuestaPedidoModulo(order6).body.shouldBe("")
+      ServidorWeb.respuestaPedidoModulo(order6).tiempo.shouldBe(10)
+      ServidorWeb.respuestaPedidoModulo(order6).pedido.shouldBe(order6)
     }
     it("Modulo puede soportar pedido"){
       unModuloVideo.moduloPuedeProcesarPedido(order3).shouldBeFalse()

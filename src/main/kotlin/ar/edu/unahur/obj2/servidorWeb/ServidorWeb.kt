@@ -15,47 +15,30 @@ object ServidorWeb{
   fun agregarIpSospechosa(string: String) = ipSospechosas.add(string)
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
   // El servidor debe delegar al modulo si puede responder
-  fun serverPuedeResponderPedido(pedido: Pedido): Boolean = modulosHabilitados.any{ m -> m.moduloPuedeProcesarPedido(pedido) }
+  fun serverPuedeResponderPedido(pedido: Pedido): Boolean = moduloAptoResponderPedido(pedido).isNotEmpty()
+  fun moduloAptoResponderPedido(pedido: Pedido): List<Modulo> = modulosHabilitados.filter{ a -> a.moduloPuedeProcesarPedido(pedido) }
 
-  // OBVIAMENTE NO PUEDE SER ASI, PERO ES LO QUE CREO QUE TENDRÍA QUE PASAR ()
-  fun rtaPtcl(pedido: Pedido, modulo: Modulo){
-    if ( pedido.protocolo() == "http" && modulo.moduloPuedeProcesarPedido(pedido) ){
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.OK
-      fun body(): String = "Servicio Implementado"
-      fun tiempo(): Int = 22 // OJO LO DEBE CALCULAR EL MODULO
-    } else {
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.NOT_FOUND
-      fun body(): String = ""
-      fun tiempo(): Int = 10
+  fun respuestaPedidoModulo(pedido: Pedido): Respuesta {
+    if(this.serverPuedeResponderPedido(pedido)) {
+      return Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
+    }else {
+      return Respuesta(CodigoHttp.NOT_FOUND, "", 10, pedido)
     }
   }
-  fun rtaModulo(pedido: Pedido){
-    if (serverPuedeResponderPedido(pedido)){
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.OK
-      fun body(): String = "Servicio Implementado"
-      fun tiempo(): Int = 45
-    } else {
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.NOT_IMPLEMENTED
-      fun body(): String = ""
-      fun tiempo(): Int = 10
-    }
-  }
-
 }
-
+class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido){
+//  fun CodigoHttp() = this.codigo
+//  fun body() = this.body
+//  fun tiempo() = this.tiempo
+//  fun pedido() = this.pedido
+}
 interface Modulo{
   val extensionesSoportadas: MutableList<String>
   val body: String
   val tiempo: Int
   fun agregarExtension(extension: String) = extensionesSoportadas.add(extension)
   fun puedeSoportarExtension(extension: String): Boolean = extensionesSoportadas.contains(extension)
-  fun moduloPuedeProcesarPedido(pedido:Pedido) = extensionesSoportadas.contains(pedido.extension())
-  //fun moduloRespondeAlPedido(pedido: Pedido) = (moduloPuedeProcesarPedido(pedido))
-
+  fun moduloPuedeProcesarPedido(pedido:Pedido): Boolean = extensionesSoportadas.contains(pedido.extension())
   }
 class ModuloImagen: Modulo{
   override val extensionesSoportadas: MutableList<String> = mutableListOf("tiff","psd","bmp")
@@ -73,14 +56,9 @@ class ModuloTexto: Modulo{
   override val tiempo: Int = 2
 }
 
-class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido, respuesta: MensajeDeRespuesta){
-//  fun CodigoHttp() = this.codigo
-//  fun body() = this.body
-//  fun tiempo() = this.tiempo
-//  fun pedido() = this.pedido
-}
 
 
+/*
 interface MensajeDeRespuesta {
   fun codigo():CodigoHttp
   fun body(): String
@@ -101,7 +79,35 @@ object RtaError: MensajeDeRespuesta{
   override fun body(): String = " "
   override fun tiempo(): Int = 10
 }
-
+*/
+/*
+  // OBVIAMENTE NO PUEDE SER ASI, PERO ES LO QUE CREO QUE TENDRÍA QUE PASAR ()
+  fun rtaPtcl(pedido: Pedido, modulo: Modulo){
+    if ( pedido.protocolo() == "http" && modulo.moduloPuedeProcesarPedido(pedido) ){
+      fun refPedido() = pedido
+      //fun codigo() = CodigoHttp.OK
+      //fun body(): String = "Servicio Implementado"
+      //fun tiempo(): Int = 22 // OJO LO DEBE CALCULAR EL MODULO
+    } else {
+      //fun refPedido() = pedido
+      //fun codigo() = CodigoHttp.NOT_FOUND
+      //fun body(): String = ""
+      //fun tiempo(): Int = 10
+    }
+  }
+  fun rtaModulo(pedido: Pedido){
+    if (serverPuedeResponderPedido(pedido)){
+      fun refPedido() = pedido
+      fun codigo() = CodigoHttp.OK
+      fun body(): String = "Servicio Implementado"
+      fun tiempo(): Int = 45
+    } else {
+      fun refPedido() = pedido
+      fun codigo() = CodigoHttp.NOT_IMPLEMENTED
+      fun body(): String = ""
+      fun tiempo(): Int = 10
+    }
+  }*/
 
 //fun respuestaAlPedido(pedido: Pedido) = if (! moduloPuedeProcesarPedido(pedido)) CodigoHttp.NOT_FOUND else CodigoHttp.OK
 //fun serverAceptaPedido(pedido: Pedido): Boolean = ServidorWeb.modulosHabilitados.any{ modulo -> modulo.extensionesSoportadas.any{ ext -> ext == pedido.extension()} }
