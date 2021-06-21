@@ -135,12 +135,13 @@ class ServidorWebTest : DescribeSpec({
     val reply2 = Respuesta(CodigoHttp.OK,"Servicio Implementado", 55, order3)
     val reply3 = Respuesta(CodigoHttp.NOT_FOUND,"", 10, order4)
     val reply4 = Respuesta(CodigoHttp.NOT_FOUND,"", 10, order5)
-
     ServidorWeb.agregarRespuestas(reply1)
     ServidorWeb.agregarRespuestas(reply2)
     ServidorWeb.agregarRespuestas(reply3)
     ServidorWeb.agregarRespuestas(reply4)
 
+    /*PEDIDOS DE IP SOSPECHOSAS*/
+    ServidorWeb.agregarPedidoIPSosp(order3)
     ServidorWeb.agregarPedidoIPSosp(order4)
     ServidorWeb.agregarPedidoIPSosp(order6)
     ServidorWeb.agregarPedidoIPSosp(order9)
@@ -169,11 +170,12 @@ class ServidorWebTest : DescribeSpec({
     }
     describe("Analizar IP Sospechosas"){
       it("cantidad de ip sospechosas"){
-        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.130.9").shouldBe(6)
+        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.130.9").shouldBe(7)
+        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.13.8").shouldBe(1)
       }
       it("Pedidos de Ip sospechosas que solicitaron ruta especifica"){
-        AnalizadorDeIPSospechosa.pedidosQueBuscaronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly(order9, order12)
-        AnalizadorDeIPSospechosa.ipsRequirieronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.130.9")
+        AnalizadorDeIPSospechosa.pedidosQueBuscaronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly(order3, order9, order12)
+        AnalizadorDeIPSospechosa.ipsRequirieronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.13.8", "207.46.130.9")
       }
       it("modulo de mas consulta de Ip Sospechosas"){
 
