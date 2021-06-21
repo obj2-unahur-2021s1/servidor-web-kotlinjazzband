@@ -3,7 +3,10 @@ package ar.edu.unahur.obj2.servidorWeb
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
+import io.kotest.matchers.collections.shouldContain
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldHave
 import java.time.LocalDateTime
 
 class ServidorWebTest : DescribeSpec({
@@ -28,7 +31,7 @@ class ServidorWebTest : DescribeSpec({
         order1.fechaHora.year.shouldBe(2021)
       }
     }
-    describe("Verificacion de protocolo de ingreso de un pedido"){
+    describe("Verificación de protocolo de ingreso de un pedido"){
       it("reply1 respuesta del servidor"){
         ServidorWeb.esProtocoloHabilitado(order1).shouldBe(200)
       }
@@ -38,14 +41,20 @@ class ServidorWebTest : DescribeSpec({
     }
   }
   val fecha2 = LocalDateTime.of(2021, 6, 15, 14, 17, 22)
-  val order3 = Pedido("207.46.13.8","http://pepito.com.ar/documentos/doc1.jpg", fecha2)
+  val order3 = Pedido("207.46.13.8","http://pepito.com.ar/imagen/doc1.jpg", fecha2)
   val order4 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.html", fecha2) // era https
-  val order5 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.avi", fecha1)
+  val order5 = Pedido("207.46.13.5","http://pepito.com.ar/videos/doc1.avi", fecha1)
   val order6 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.css", fecha2)
   val order7 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fecha1)
+  val order8 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.doc", fecha1)
+  val order9 = Pedido("207.46.130.9","http://pepito.com.ar/imagen/doc1.jpg", fecha2)    // extension
+  val order10 = Pedido("207.46.130.9","http://pepito.com.ar/imagen/doc1.png", fecha1)
+  val order11 = Pedido("207.46.130.9","http://pepito.com.ar/video/doc1.mpeg", fecha1)
+  val order12 = Pedido("207.46.130.9","http://pepito.com.ar/imagen/doc1.jpg", fecha1)   // extension
+  val order13 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.docx", fecha1)
+
 
   describe("Test Modulo") {
-
     ModuloImagen.agregarExtension("jpg")
     ModuloImagen.agregarExtension("png")
     ModuloImagen.agregarExtension("gif")
@@ -60,7 +69,6 @@ class ServidorWebTest : DescribeSpec({
     ModuloVideo.agregarExtension("mpeg")
 
     //Agregamos a modulo habilitados en ServidorWeb
-
     ServidorWeb.modulosHabilitados.add(ModuloImagen)
     ServidorWeb.modulosHabilitados.add(ModuloTexto)
     ServidorWeb.modulosHabilitados.add(ModuloVideo)
@@ -127,10 +135,19 @@ class ServidorWebTest : DescribeSpec({
     val reply2 = Respuesta(CodigoHttp.OK,"Servicio Implementado", 55, order3)
     val reply3 = Respuesta(CodigoHttp.NOT_FOUND,"", 10, order4)
     val reply4 = Respuesta(CodigoHttp.NOT_FOUND,"", 10, order5)
+
     ServidorWeb.agregarRespuestas(reply1)
     ServidorWeb.agregarRespuestas(reply2)
     ServidorWeb.agregarRespuestas(reply3)
     ServidorWeb.agregarRespuestas(reply4)
+
+    ServidorWeb.agregarPedidoIPSosp(order4)
+    ServidorWeb.agregarPedidoIPSosp(order6)
+    ServidorWeb.agregarPedidoIPSosp(order9)
+    ServidorWeb.agregarPedidoIPSosp(order10)
+    ServidorWeb.agregarPedidoIPSosp(order11)
+    ServidorWeb.agregarPedidoIPSosp(order12)
+    ServidorWeb.agregarPedidoIPSosp(order13)
 
     describe("Analizadores"){
       it("Cantidad de respuestas en la lista"){
@@ -152,9 +169,15 @@ class ServidorWebTest : DescribeSpec({
     }
     describe("Analizar IP Sospechosas"){
       it("cantidad de ip sospechosas"){
-        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb).shouldBe(0)
+        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.130.9").shouldBe(6)
       }
+      it("Pedidos de Ip sospechosas que solicitaron ruta especifica"){
+        AnalizadorDeIPSospechosa.pedidosQueBuscaronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly(order9, order12)
+        AnalizadorDeIPSospechosa.ipsRequirieronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.130.9")
+      }
+      it("modulo de mas consulta de Ip Sospechosas"){
 
+      }
     }
   }
 })

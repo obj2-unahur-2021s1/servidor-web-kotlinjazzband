@@ -14,7 +14,7 @@ class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
 class ServidorWeb {
   val modulosHabilitados: MutableList<Modulo> = mutableListOf()
   val respuestasModulos:MutableList<Respuesta> = mutableListOf()
-  val ipSospechosas:MutableList<String> = mutableListOf()
+  val pedidoDeIPSospechosa:MutableList<Pedido> = mutableListOf()
 
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
   // El servidor debe delegar al modulo si puede responder
@@ -22,8 +22,8 @@ class ServidorWeb {
   fun moduloAptoResponderPedido(pedido: Pedido): List<Modulo> = modulosHabilitados.filter{ a -> a.moduloPuedeProcesarPedido(pedido) }
 
   // ANALIZADOR - HAY QUE ENVIAR RESPUESTAS E IP A LOS ANALIZADORES - Tomar de las listas
-  fun agregarIpSospechosa(string: String) = ipSospechosas.add(string)
   fun agregarRespuestas(respuesta: Respuesta) = respuestasModulos.add(respuesta)
+  fun agregarPedidoIPSosp(pedido:Pedido) = pedidoDeIPSospechosa.add(pedido)
 
   fun respuestaPedidoModulo(pedido: Pedido): Respuesta {
     if (this.serverPuedeResponderPedido(pedido)) {
@@ -82,5 +82,15 @@ object AnalizadorDeEstadisticas {
 }
 
 object AnalizadorDeIPSospechosa{
-  fun pedidosIPSospechosas(servidor: ServidorWeb) = servidor.ipSospechosas.size
+  // cuántos pedidos realizó una cierta IP sospechosa
+  fun pedidosIpRara(servidor: ServidorWeb, ipRara:String) = servidor.pedidoDeIPSospechosa.filter { p->p.ip == ipRara }
+  fun pedidosIPSospechosas(servidor: ServidorWeb, ipRara:String) = pedidosIpRara(servidor, ipRara).size
+
+  // cuál fue el módulo más consultado por todas las IPs sospechosas
+
+  fun moduloMasConsultados(){}
+
+  // el conjunto de IPs sospechosas que requirieron una cierta ruta.
+  fun pedidosQueBuscaronRuta(servidor: ServidorWeb, ruta:String):List<Pedido> = servidor.pedidoDeIPSospechosa.filter { p->p.ruta() == ruta }
+  fun ipsRequirieronRuta(servidor: ServidorWeb, ruta:String): Set<String> = pedidosQueBuscaronRuta(servidor, ruta).map{ p->p.ip }.toSet()
 }
