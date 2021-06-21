@@ -1,6 +1,8 @@
 package ar.edu.unahur.obj2.servidorWeb
 
 import java.time.LocalDateTime
+import kotlin.math.max
+import kotlin.math.roundToInt
 
 class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
   fun protocolo(): String = url.substringBefore(':')
@@ -8,29 +10,34 @@ class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
   fun extension(): String = url.substringAfterLast('.',"No Encontrado")
 }
 
-object ServidorWeb{
+// Los servidores que modelemos van a aceptar solamente el protocolo HTTP
+class ServidorWeb {
   val modulosHabilitados: MutableList<Modulo> = mutableListOf()
+  val respuestasModulos:MutableList<Respuesta> = mutableListOf()
   val ipSospechosas:MutableList<String> = mutableListOf()
 
-  fun agregarIpSospechosa(string: String) = ipSospechosas.add(string)
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
   // El servidor debe delegar al modulo si puede responder
   fun serverPuedeResponderPedido(pedido: Pedido): Boolean = moduloAptoResponderPedido(pedido).isNotEmpty()
   fun moduloAptoResponderPedido(pedido: Pedido): List<Modulo> = modulosHabilitados.filter{ a -> a.moduloPuedeProcesarPedido(pedido) }
 
+  // ANALIZADOR - HAY QUE ENVIAR RESPUESTAS E IP A LOS ANALIZADORES - Tomar de las listas
+  fun agregarIpSospechosa(string: String) = ipSospechosas.add(string)
+  fun agregarRespuestas(respuesta: Respuesta) = respuestasModulos.add(respuesta)
+
   fun respuestaPedidoModulo(pedido: Pedido): Respuesta {
-    if(this.serverPuedeResponderPedido(pedido)) {
+    if (this.serverPuedeResponderPedido(pedido)) {
       return Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
-    }else {
-      return Respuesta(CodigoHttp.NOT_FOUND, "", 10, pedido)
+    } else {
+      return Respuesta(CodigoHttp.NOT_FOUND, " ", 10, pedido)
     }
   }
 }
 class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido){
-//  fun CodigoHttp() = this.codigo
-//  fun body() = this.body
-//  fun tiempo() = this.tiempo
-//  fun pedido() = this.pedido
+  //fun CodigoHttp() = this.codigo
+  //fun body() = this.body
+  //fun tiempo() = this.tiempo
+  //fun pedido() = this.pedido
 }
 interface Modulo{
   val extensionesSoportadas: MutableList<String>
@@ -40,86 +47,40 @@ interface Modulo{
   fun puedeSoportarExtension(extension: String): Boolean = extensionesSoportadas.contains(extension)
   fun moduloPuedeProcesarPedido(pedido:Pedido): Boolean = extensionesSoportadas.contains(pedido.extension())
   }
-class ModuloImagen: Modulo{
+
+object ModuloImagen: Modulo{
   override val extensionesSoportadas: MutableList<String> = mutableListOf("tiff","psd","bmp")
   override val body: String = "Esta es una imagen"
   override val tiempo: Int = 5
 }
-class ModuloVideo: Modulo{
+object ModuloVideo: Modulo{
   override val extensionesSoportadas: MutableList<String> = mutableListOf("mkv","mov","wmv")
   override val body: String = "Este es un video"
   override val tiempo: Int = 15
 }
-class ModuloTexto: Modulo{
+object ModuloTexto: Modulo{
   override val extensionesSoportadas: MutableList<String> = mutableListOf("pdf","log","idx","dic")
   override val body: String = "Este es un texto"
   override val tiempo: Int = 2
 }
 
 
+object AnalizadorDeDemora {
+  val tiempoMinimo = 25
+  fun  cantidadDeRespuestasDemoradas(servidor:ServidorWeb) = servidor.respuestasModulos.filter { r->r.tiempo > tiempoMinimo }.size
+}
+object AnalizadorDeEstadisticas {
+  fun tiempoRespuestaPromedio(servidor:ServidorWeb) = servidor.respuestasModulos.map{r->r.tiempo}.average()
 
-/*
-interface MensajeDeRespuesta {
-  fun codigo():CodigoHttp
-  fun body(): String
-  fun tiempo(): Int
-}
-object RtaOK: MensajeDeRespuesta{
-  override fun codigo() = CodigoHttp.OK
-  override fun body(): String = "Servicio Implementado"
-  override fun tiempo(): Int = 45
-}
-object RtaNoEncontrado: MensajeDeRespuesta{
-  override fun codigo() = CodigoHttp.NOT_IMPLEMENTED
-  override fun body(): String = " "
-  override fun tiempo(): Int = 10
-}
-object RtaError: MensajeDeRespuesta{
-  override fun codigo() = CodigoHttp.NOT_FOUND
-  override fun body(): String = " "
-  override fun tiempo(): Int = 10
-}
-*/
-/*
-  // OBVIAMENTE NO PUEDE SER ASI, PERO ES LO QUE CREO QUE TENDRÍA QUE PASAR ()
-  fun rtaPtcl(pedido: Pedido, modulo: Modulo){
-    if ( pedido.protocolo() == "http" && modulo.moduloPuedeProcesarPedido(pedido) ){
-      fun refPedido() = pedido
-      //fun codigo() = CodigoHttp.OK
-      //fun body(): String = "Servicio Implementado"
-      //fun tiempo(): Int = 22 // OJO LO DEBE CALCULAR EL MODULO
-    } else {
-      //fun refPedido() = pedido
-      //fun codigo() = CodigoHttp.NOT_FOUND
-      //fun body(): String = ""
-      //fun tiempo(): Int = 10
-    }
-  }
-  fun rtaModulo(pedido: Pedido){
-    if (serverPuedeResponderPedido(pedido)){
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.OK
-      fun body(): String = "Servicio Implementado"
-      fun tiempo(): Int = 45
-    } else {
-      fun refPedido() = pedido
-      fun codigo() = CodigoHttp.NOT_IMPLEMENTED
-      fun body(): String = ""
-      fun tiempo(): Int = 10
-    }
-  }*/
+  fun cantidadDePedidosEntreFechas(){}
 
-//fun respuestaAlPedido(pedido: Pedido) = if (! moduloPuedeProcesarPedido(pedido)) CodigoHttp.NOT_FOUND else CodigoHttp.OK
-//fun serverAceptaPedido(pedido: Pedido): Boolean = ServidorWeb.modulosHabilitados.any{ modulo -> modulo.extensionesSoportadas.any{ ext -> ext == pedido.extension()} }
-/*
-  if(moduloAceptaPedido(pedido)){
-    refPedido = pedido
-    codigo = CodigoHttp.OK
-    body = "Servicio Implementado"
-    tiempo = 15
-  }
-  var codigo: CodigoHttp = CodigoHttp.NOT_IMPLEMENTED
-  var body: String = "Servicio No Implementado"
-  var tiempo: Int = 10
-  var refPedido: Pedido = pedido
- */
+  fun cantidadDePedidosConTexto(){}
+
+  fun porcentajeDeRespuestaExitosa(servidor: ServidorWeb) = cantidadPedidosOk(servidor)*100/cantidadDePedidos(servidor)
+  private fun cantidadDePedidos(servidor: ServidorWeb): Int = servidor.respuestasModulos.size
+  private fun cantidadPedidosOk(servidor: ServidorWeb): Int = servidor.respuestasModulos.filter{ r->r.codigo == CodigoHttp.OK }.size
+}
+
+object AnalizadorDeIPSospechosa{
+  fun pedidosIPSospechosas(servidor: ServidorWeb) = servidor.ipSospechosas.size
+}
