@@ -1,7 +1,6 @@
 package ar.edu.unahur.obj2.servidorWeb
 
 import java.time.LocalDateTime
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
@@ -10,7 +9,6 @@ class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
   fun extension(): String = url.substringAfterLast('.',"No Encontrado")
 }
 
-// Los servidores que modelemos van a aceptar solamente el protocolo HTTP
 class ServidorWeb {
   val modulosHabilitados: MutableList<Modulo> = mutableListOf()
   val respuestasModulos:MutableList<Respuesta> = mutableListOf()
@@ -22,23 +20,23 @@ class ServidorWeb {
   fun moduloAptoResponderPedido(pedido: Pedido): List<Modulo> = modulosHabilitados.filter{ a -> a.moduloPuedeProcesarPedido(pedido) }
 
   // ANALIZADOR - HAY QUE ENVIAR RESPUESTAS E IP A LOS ANALIZADORES - Tomar de las listas
-  fun agregarRespuestas(respuesta: Respuesta) = respuestasModulos.add(respuesta)
   fun agregarPedidoIPSosp(pedido:Pedido) = pedidoDeIPSospechosa.add(pedido)
 
-  fun respuestaPedidoModulo(pedido: Pedido): Respuesta {
-    if (this.serverPuedeResponderPedido(pedido)) {
-      return Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
-    } else {
-      return Respuesta(CodigoHttp.NOT_FOUND, " ", 10, pedido)
-    }
+ fun respuestaOk(pedido:Pedido): Respuesta{
+   val respuestaOK = Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
+    respuestasModulos.add(respuestaOK)
+   return respuestaOK
+ }
+  fun respuestaFail(pedido:Pedido): Respuesta{
+    val respuestaFail = Respuesta(CodigoHttp.NOT_FOUND, "", 10, pedido)
+      respuestasModulos.add(respuestaFail)
+    return respuestaFail
   }
+  fun atenderPedido(pedido: Pedido) = if(this.serverPuedeResponderPedido(pedido)){respuestaOk(pedido)}else{respuestaFail(pedido)}
 }
-class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido){
-  //fun CodigoHttp() = this.codigo
-  //fun body() = this.body
-  //fun tiempo() = this.tiempo
-  //fun pedido() = this.pedido
-}
+
+class Respuesta(val codigo: CodigoHttp, val body: String, val tiempo: Int, val pedido: Pedido){}
+
 interface Modulo{
   val extensionesSoportadas: MutableList<String>
   val body: String
@@ -64,17 +62,16 @@ object ModuloTexto: Modulo{
   override val tiempo: Int = 2
 }
 
-
 object AnalizadorDeDemora {
-  val tiempoMinimo = 25
-  fun  cantidadDeRespuestasDemoradas(servidor:ServidorWeb) = servidor.respuestasModulos.filter { r->r.tiempo > tiempoMinimo }.size
+  val tiempoMinimo = 5
+  fun cantidadDeRespuestasDemoradas(servidor:ServidorWeb) = servidor.respuestasModulos.filter { r->r.tiempo > tiempoMinimo }.size
 }
-object AnalizadorDeEstadisticas {
-  fun tiempoRespuestaPromedio(servidor:ServidorWeb) = servidor.respuestasModulos.map{r->r.tiempo}.average()
+object AnalizadorDeEstadisticas{
+  fun tiempoRespuestaPromedio(servidor:ServidorWeb) = servidor.respuestasModulos.map{r->r.tiempo}.average().roundToInt()
 
   fun cantidadDePedidosEntreFechas(){}
 
-  fun cantidadDePedidosConTexto(){}
+  fun cantidadDeRespuestasConDeterminadoBody(){}
 
   fun porcentajeDeRespuestaExitosa(servidor: ServidorWeb) = cantidadPedidosOk(servidor)*100/cantidadDePedidos(servidor)
   private fun cantidadDePedidos(servidor: ServidorWeb): Int = servidor.respuestasModulos.size
