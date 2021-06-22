@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
 
 class ServidorWebTest : DescribeSpec({
-  val ServidorWeb = ServidorWeb()
+  val servidorWeb = ServidorWeb()
   val fecha1 = LocalDateTime.of(2021, 6, 10, 14, 17, 22)
   val order1 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.html", fecha1)
   val order2 = Pedido("207.46.130.7","https://pepito.com.ar/documentos/doc1.html", fecha1)
@@ -31,10 +31,10 @@ class ServidorWebTest : DescribeSpec({
     }
     describe("Verificación de protocolo de ingreso de un pedido"){
       it("reply1 respuesta del servidor"){
-        ServidorWeb.esProtocoloHabilitado(order1).shouldBe(200)
+        servidorWeb.esProtocoloHabilitado(order1).shouldBe(200)
       }
       it("reply2 respuesta del servidor"){
-        ServidorWeb.esProtocoloHabilitado(order2).shouldBe(501)
+        servidorWeb.esProtocoloHabilitado(order2).shouldBe(501)
       }
     }
   }
@@ -67,9 +67,9 @@ class ServidorWebTest : DescribeSpec({
     ModuloVideo.agregarExtension("mpeg")
 
     //Agregamos a modulo habilitados en ServidorWeb
-    ServidorWeb.modulosHabilitados.add(ModuloImagen)
-    ServidorWeb.modulosHabilitados.add(ModuloTexto)
-    ServidorWeb.modulosHabilitados.add(ModuloVideo)
+    servidorWeb.modulosHabilitados.add(ModuloImagen)
+    servidorWeb.modulosHabilitados.add(ModuloTexto)
+    servidorWeb.modulosHabilitados.add(ModuloVideo)
 
     describe("Pedido y Respuesta al servidor con Módulos") {
       it("El modulo unModuloImagen agregado puede soportar extensiones jpg gif y png y otras que ya vienen precargadas") {
@@ -93,12 +93,12 @@ class ServidorWebTest : DescribeSpec({
         ModuloVideo.puedeSoportarExtension("mov").shouldBeTrue()
       }
       it("Verificar si ServidorWeb acepta imagenes y texto y rechaza css y json por falta de modulo") {
-        ServidorWeb.serverPuedeResponderPedido(order1).shouldBeTrue()     // es html texto
-        ServidorWeb.serverPuedeResponderPedido(order3).shouldBeTrue()     //es jpg imagen
-        ServidorWeb.serverPuedeResponderPedido(order4).shouldBeTrue()     // es html texto
-        ServidorWeb.serverPuedeResponderPedido(order5).shouldBeTrue()     // es avi video
-        ServidorWeb.serverPuedeResponderPedido(order6).shouldBeFalse()    // es css, no hay modulo para esa extension
-        ServidorWeb.serverPuedeResponderPedido(order7).shouldBeFalse()    // es json, no hay modulo para esa extension
+        servidorWeb.serverPuedeResponderPedido(order1).shouldBeTrue()     // es html texto
+        servidorWeb.serverPuedeResponderPedido(order3).shouldBeTrue()     //es jpg imagen
+        servidorWeb.serverPuedeResponderPedido(order4).shouldBeTrue()     // es html texto
+        servidorWeb.serverPuedeResponderPedido(order5).shouldBeTrue()     // es avi video
+        servidorWeb.serverPuedeResponderPedido(order6).shouldBeFalse()    // es css, no hay modulo para esa extension
+        servidorWeb.serverPuedeResponderPedido(order7).shouldBeFalse()    // es json, no hay modulo para esa extension
       }
 
     }
@@ -109,17 +109,17 @@ class ServidorWebTest : DescribeSpec({
         (ModuloVideo.tiempo == 15).shouldBeTrue()
 
         //Respuesta de Servidor para orden 5
-        ServidorWeb.atenderPedido(order5).codigo.shouldBe(CodigoHttp.OK)
-        ServidorWeb.atenderPedido(order5).body.shouldBe("Este es un video")
-        ServidorWeb.atenderPedido(order5).tiempo.shouldBe(15)
-        ServidorWeb.atenderPedido(order5).pedido.shouldBe(order5)
+        servidorWeb.atenderPedido(order5).codigo.shouldBe(CodigoHttp.OK)
+        servidorWeb.atenderPedido(order5).body.shouldBe("Este es un video")
+        servidorWeb.atenderPedido(order5).tiempo.shouldBe(15)
+        servidorWeb.atenderPedido(order5).pedido.shouldBe(order5)
       }
       it("Probar el mensaje de denegar por falta de modulo ") {
         //Respuesta de Servidor para orden 6 sin modulo para css
-        ServidorWeb.atenderPedido(order6).codigo.shouldBe(CodigoHttp.NOT_FOUND)
-        ServidorWeb.atenderPedido(order6).body.shouldBe("")
-        ServidorWeb.atenderPedido(order6).tiempo.shouldBe(10)
-        ServidorWeb.atenderPedido(order6).pedido.shouldBe(order6)
+        servidorWeb.atenderPedido(order6).codigo.shouldBe(CodigoHttp.NOT_FOUND)
+        servidorWeb.atenderPedido(order6).body.shouldBe("")
+        servidorWeb.atenderPedido(order6).tiempo.shouldBe(10)
+        servidorWeb.atenderPedido(order6).pedido.shouldBe(order6)
       }
       it("Modulo puede soportar pedido") {
         ModuloVideo.moduloPuedeProcesarPedido(order3).shouldBeFalse()
@@ -130,34 +130,34 @@ class ServidorWebTest : DescribeSpec({
 
   describe("Test Analizadores"){
 
-    ServidorWeb.atenderPedido(order1)
-    ServidorWeb.atenderPedido(order2)
-    ServidorWeb.atenderPedido(order3)
-    ServidorWeb.atenderPedido(order4)
+    servidorWeb.atenderPedido(order1)
+    servidorWeb.atenderPedido(order2)
+    servidorWeb.atenderPedido(order3)
+    servidorWeb.atenderPedido(order4)
 
     /*PEDIDOS DE IP SOSPECHOSAS*/
-    ServidorWeb.agregarPedidoIPSosp(order3)
-    ServidorWeb.agregarPedidoIPSosp(order4)
-    ServidorWeb.agregarPedidoIPSosp(order6)
-    ServidorWeb.agregarPedidoIPSosp(order9)
-    ServidorWeb.agregarPedidoIPSosp(order10)
-    ServidorWeb.agregarPedidoIPSosp(order11)
-    ServidorWeb.agregarPedidoIPSosp(order12)
-    ServidorWeb.agregarPedidoIPSosp(order13)
+    servidorWeb.agregarPedidoIPSosp(order3)
+    servidorWeb.agregarPedidoIPSosp(order4)
+    servidorWeb.agregarPedidoIPSosp(order6)
+    servidorWeb.agregarPedidoIPSosp(order9)
+    servidorWeb.agregarPedidoIPSosp(order10)
+    servidorWeb.agregarPedidoIPSosp(order11)
+    servidorWeb.agregarPedidoIPSosp(order12)
+    servidorWeb.agregarPedidoIPSosp(order13)
 
     describe("Analizadores"){
       it("Cantidad de respuestas en la lista"){
-        ServidorWeb.respuestasModulos.size.shouldBe(4)
+        servidorWeb.respuestasModulos.size.shouldBe(4)
       }
     }
     describe("Analizador de Demora"){
       it("Respuestas demoradas"){
-        AnalizadorDeDemora.cantidadDeRespuestasDemoradas(ServidorWeb).shouldBe(4)
+        AnalizadorDeDemora.cantidadDeRespuestasDemoradas(servidorWeb).shouldBe(4)
       }
     }
     describe("Analizador De Estadísticas"){
       it("Promedio de tiempo de demora"){
-        AnalizadorDeEstadisticas.tiempoRespuestaPromedio(ServidorWeb).shouldBe(10)
+        AnalizadorDeEstadisticas.tiempoRespuestaPromedio(servidorWeb).shouldBe(10)
       }
       it("Porcentaje de respuestas exitosas"){
 
@@ -166,16 +166,51 @@ class ServidorWebTest : DescribeSpec({
     }
     describe("Analizar IP Sospechosas"){
       it("cantidad de ip sospechosas"){
-        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.130.9").shouldBe(7)
-        AnalizadorDeIPSospechosa.pedidosIPSospechosas(ServidorWeb, "207.46.13.8").shouldBe(1)
+        AnalizadorDeIPSospechosa.pedidosIPSospechosas(servidorWeb, "207.46.130.9").shouldBe(7)
+        AnalizadorDeIPSospechosa.pedidosIPSospechosas(servidorWeb, "207.46.13.8").shouldBe(1)
       }
       it("Pedidos de Ip sospechosas que solicitaron ruta especifica"){
-        AnalizadorDeIPSospechosa.pedidosQueBuscaronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly(order3, order9, order12)
-        AnalizadorDeIPSospechosa.ipsRequirieronRuta(ServidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.13.8", "207.46.130.9")
+        AnalizadorDeIPSospechosa.pedidosQueBuscaronRuta(servidorWeb,"/imagen/doc1.jpg").shouldContainExactly(order3, order9, order12)
+        AnalizadorDeIPSospechosa.ipsRequirieronRuta(servidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.13.8", "207.46.130.9")
       }
       it("modulo de mas consulta de Ip Sospechosas"){
 
       }
     }
+    describe("Analizar cantidad De Pedidos Entre Fechas"){
+      it("Carga de 5 peticiones en una fecha"){
+        val fechaNueva1 = LocalDateTime.of(2021, 6, 15, 14, 17, 22)
+        val fechaNueva2 = LocalDateTime.of(2021, 6, 15, 14, 17, 22)
+        val order14 = Pedido("207.46.13.8","http://pepito.com.ar/imagen/doc1.jpg", fechaNueva1)
+        val order15 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.html", fechaNueva1)
+        val order16 = Pedido("207.46.13.5","http://pepito.com.ar/videos/doc1.avi", fechaNueva1)
+        val order17 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.css", fechaNueva1)
+        val order18 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fechaNueva1)
+        val order19 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fechaNueva2)
+
+        servidorWeb.atenderPedido(order14)
+        servidorWeb.atenderPedido(order15)
+        servidorWeb.atenderPedido(order16)
+        servidorWeb.atenderPedido(order17)
+        servidorWeb.atenderPedido(order18)
+        servidorWeb.atenderPedido(order19)
+
+        val fechaA = LocalDateTime.of(2021, 6, 14, 14, 17, 22)
+        val fechaB = LocalDateTime.of(2021, 6, 16, 14, 17, 22)
+
+        AnalizadorDeEstadisticas.cantidadDePedidosEntreFechas(servidorWeb,fechaA,fechaB).shouldBe(6)
+     }
+
+    }
+    describe("Analizar cantidad De respuestas con mismo body"){
+      it("Test con 5 pedidos"){
+        val body = ""
+        AnalizadorDeEstadisticas.cantidadDeRespuestasConDeterminadoBody(servidorWeb,body).shouldBe(4)
+      }
+
+    }
+
+
+
   }
 })

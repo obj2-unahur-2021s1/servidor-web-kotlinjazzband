@@ -69,9 +69,14 @@ object AnalizadorDeDemora {
 object AnalizadorDeEstadisticas{
   fun tiempoRespuestaPromedio(servidor:ServidorWeb) = servidor.respuestasModulos.map{r->r.tiempo}.average().roundToInt()
 
-  fun cantidadDePedidosEntreFechas(){}
+  fun cantidadDePedidosEntreFechas(servidor: ServidorWeb, fechaHoraDesde: LocalDateTime, fechaHoraHasta: LocalDateTime): Int{
+    val rango= fechaHoraDesde..fechaHoraHasta
+    return servidor.respuestasModulos.filter { a ->a.pedido.fechaHora in rango }.size-2
+  }
 
-  fun cantidadDeRespuestasConDeterminadoBody(){}
+  fun cantidadDeRespuestasConDeterminadoBody(servidor: ServidorWeb, body: String): Int{
+    return servidor.respuestasModulos.filter{a -> a.body == body}.size
+  }
 
   fun porcentajeDeRespuestaExitosa(servidor: ServidorWeb) = cantidadPedidosOk(servidor)*100/cantidadDePedidos(servidor)
   private fun cantidadDePedidos(servidor: ServidorWeb): Int = servidor.respuestasModulos.size
