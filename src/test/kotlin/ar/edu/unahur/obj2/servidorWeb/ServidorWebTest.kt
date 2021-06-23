@@ -139,14 +139,14 @@ class ServidorWebTest : DescribeSpec({
     servidorWeb.atenderPedido(order4)
 
     /*PEDIDOS DE IP SOSPECHOSAS*/
-    servidorWeb.agregarPedidoIPSosp(order3)
-    servidorWeb.agregarPedidoIPSosp(order4)
-    servidorWeb.agregarPedidoIPSosp(order6)
-    servidorWeb.agregarPedidoIPSosp(order9)
-    servidorWeb.agregarPedidoIPSosp(order10)
-    servidorWeb.agregarPedidoIPSosp(order11)
-    servidorWeb.agregarPedidoIPSosp(order12)
-    servidorWeb.agregarPedidoIPSosp(order13)
+    servidorWeb.agregarPedidoDeIPSospechosa(order3)
+    servidorWeb.agregarPedidoDeIPSospechosa(order4)
+    servidorWeb.agregarPedidoDeIPSospechosa(order6)
+    servidorWeb.agregarPedidoDeIPSospechosa(order9)
+    servidorWeb.agregarPedidoDeIPSospechosa(order10)
+    servidorWeb.agregarPedidoDeIPSospechosa(order11)
+    servidorWeb.agregarPedidoDeIPSospechosa(order12)
+    servidorWeb.agregarPedidoDeIPSospechosa(order13)
 
     describe("Analizadores"){
       it("Cantidad de respuestas en la lista"){
@@ -177,7 +177,7 @@ class ServidorWebTest : DescribeSpec({
         AnalizadorDeIPSospechosa.ipsRequirieronRuta(servidorWeb,"/imagen/doc1.jpg").shouldContainExactly("207.46.13.8", "207.46.130.9")
       }
       it("modulo de mas consulta de Ip Sospechosas"){
-
+        AnalizadorDeIPSospechosa.extensionesSolicitadas(servidorWeb).shouldContainExactly("jpg", "html", "css", "jpg", "png", "mpeg", "jpg", "docx")
       }
     }
     describe("Analizar cantidad De Pedidos Entre Fechas"){

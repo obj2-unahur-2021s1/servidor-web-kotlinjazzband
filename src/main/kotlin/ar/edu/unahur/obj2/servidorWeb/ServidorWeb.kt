@@ -13,6 +13,7 @@ class ServidorWeb {
   val modulosHabilitados: MutableList<Modulo> = mutableListOf()
   val analizadoresAsignados: MutableList<Analizador> = mutableListOf()
   val pedidoDeIPSospechosa:MutableList<Pedido> = mutableListOf()
+  val ipSospechosas: MutableList<String> = mutableListOf()
 
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
   // El servidor debe delegar al modulo si puede responder
@@ -20,7 +21,13 @@ class ServidorWeb {
   fun moduloAptoResponderPedido(pedido: Pedido): List<Modulo> = modulosHabilitados.filter{ a -> a.moduloPuedeProcesarPedido(pedido) }
 
   // ANALIZADOR - HAY QUE ENVIAR RESPUESTAS E IP A LOS ANALIZADORES - Tomar de las listas
-  fun agregarPedidoIPSosp(pedido:Pedido) = pedidoDeIPSospechosa.add(pedido)
+  fun agregarIPsospechosa(ip: String) = ipSospechosas.add(ip)
+  fun enviarPedidoSospechoso(pedido: Pedido){
+    if ( ipSospechosas.contains{ pedido.ip } ){
+      agregarPedidoDeIPSospechosa(pedido)
+    }
+  }
+  fun agregarPedidoDeIPSospechosa(pedido:Pedido) = pedidoDeIPSospechosa.add(pedido)
 
  fun respuestaOk(pedido:Pedido): Respuesta{
    val respuestaOK = Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
@@ -96,7 +103,7 @@ object AnalizadorDeIPSospechosa: Analizador{
   fun cantidadPedidosIPSospechosas(servidor: ServidorWeb, ipRara:String) = pedidosIpRara(servidor, ipRara).size
 
   // cuál fue el módulo más consultado por todas las IPs sospechosas
-
+  fun extensionesSolicitadas(servidor: ServidorWeb) = servidor.pedidoDeIPSospechosa.map { it.extension() }
   fun moduloMasConsultados(){
     //return servidor.modulosHabilitados.filter
   }
