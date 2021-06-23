@@ -44,7 +44,6 @@ class ServidorWebTest : DescribeSpec({
   val order5 = Pedido("207.46.13.5","http://pepito.com.ar/videos/doc1.avi", fecha1)
   val order6 = Pedido("207.46.130.9","http://pepito.com.ar/documentos/doc1.css", fecha2)
   val order7 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.json", fecha1)
-  //val order8 = Pedido("207.46.13.5","http://pepito.com.ar/documentos/doc1.doc", fecha1)
   val order9 = Pedido("207.46.130.9","http://pepito.com.ar/imagen/doc1.jpg", fecha2)    // extension
   val order10 = Pedido("207.46.130.9","http://pepito.com.ar/imagen/doc1.png", fecha1)
   val order11 = Pedido("207.46.130.9","http://pepito.com.ar/video/doc1.mpeg", fecha1)
@@ -66,7 +65,6 @@ class ServidorWebTest : DescribeSpec({
     ModuloVideo.agregarExtension("avi")
     ModuloVideo.agregarExtension("mpeg")
 
-    //Agregamos a modulo habilitados en ServidorWeb
     servidorWeb.modulosHabilitados.add(ModuloImagen)
     servidorWeb.modulosHabilitados.add(ModuloTexto)
     servidorWeb.modulosHabilitados.add(ModuloVideo)
