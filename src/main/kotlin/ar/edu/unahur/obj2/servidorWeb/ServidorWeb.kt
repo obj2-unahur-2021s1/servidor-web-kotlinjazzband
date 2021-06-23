@@ -11,7 +11,7 @@ class Pedido(val ip: String, val url: String, val fechaHora: LocalDateTime){
 
 class ServidorWeb {
   val modulosHabilitados: MutableList<Modulo> = mutableListOf()
-  val respuestasModulos:MutableList<Respuesta> = mutableListOf()
+  val analizadoresAsignados: MutableList<Analizador> = mutableListOf()
   val pedidoDeIPSospechosa:MutableList<Pedido> = mutableListOf()
 
   fun esProtocoloHabilitado(pedido: Pedido) = if (pedido.protocolo() == "http") 200 else 501
@@ -24,12 +24,12 @@ class ServidorWeb {
 
  fun respuestaOk(pedido:Pedido): Respuesta{
    val respuestaOK = Respuesta(CodigoHttp.OK,moduloAptoResponderPedido(pedido).first().body,moduloAptoResponderPedido(pedido).first().tiempo,pedido)
-    respuestasModulos.add(respuestaOK)
+   analizadoresAsignados.forEach{ a -> a.respuestasAPedidos.add(respuestaOK)}
    return respuestaOK
  }
   fun respuestaFail(pedido:Pedido): Respuesta{
     val respuestaFail = Respuesta(CodigoHttp.NOT_FOUND, "", 10, pedido)
-      respuestasModulos.add(respuestaFail)
+    analizadoresAsignados.forEach{ a -> a.respuestasAPedidos.add(respuestaFail)}
     return respuestaFail
   }
   fun atenderPedido(pedido: Pedido) = if(this.serverPuedeResponderPedido(pedido)){respuestaOk(pedido)}else{respuestaFail(pedido)}
@@ -62,35 +62,44 @@ object ModuloTexto: Modulo{
   override val tiempo: Int = 2
 }
 
-object AnalizadorDeDemora {
+interface Analizador{
+  val respuestasAPedidos:MutableList<Respuesta>
+}
+object AnalizadorDeDemora: Analizador{
+  override val respuestasAPedidos:MutableList<Respuesta> = mutableListOf()
   val tiempoMinimo = 5
-  fun cantidadDeRespuestasDemoradas(servidor:ServidorWeb) = servidor.respuestasModulos.filter { r->r.tiempo > tiempoMinimo }.size
+  fun cantidadDeRespuestasDemoradas() = respuestasAPedidos.filter { r->r.tiempo > tiempoMinimo }.size
 }
-object AnalizadorDeEstadisticas{
-  fun tiempoRespuestaPromedio(servidor:ServidorWeb) = servidor.respuestasModulos.map{r->r.tiempo}.average().roundToInt()
+object AnalizadorDeEstadisticas: Analizador{
+  override val respuestasAPedidos:MutableList<Respuesta> = mutableListOf()
 
-  fun cantidadDePedidosEntreFechas(servidor: ServidorWeb, fechaHoraDesde: LocalDateTime, fechaHoraHasta: LocalDateTime): Int{
+  fun tiempoRespuestaPromedio() = respuestasAPedidos.map{ r->r.tiempo}.average().roundToInt()
+
+  fun cantidadDePedidosEntreFechas(fechaHoraDesde: LocalDateTime, fechaHoraHasta: LocalDateTime): Int{
     val rango= fechaHoraDesde..fechaHoraHasta
-    return servidor.respuestasModulos.filter { a ->a.pedido.fechaHora in rango }.size-2
+    return respuestasAPedidos.filter { a ->a.pedido.fechaHora in rango }.size
   }
+   fun cantidadDeRespuestasConDeterminadoBody(body: String): Int{
+     return respuestasAPedidos.filter { a ->a.body == body }.size
+   }
 
-  fun cantidadDeRespuestasConDeterminadoBody(servidor: ServidorWeb, body: String): Int{
-    return servidor.respuestasModulos.filter{a -> a.body == body}.size
-  }
-
-  fun porcentajeDeRespuestaExitosa(servidor: ServidorWeb) = cantidadPedidosOk(servidor)*100/cantidadDePedidos(servidor)
-  private fun cantidadDePedidos(servidor: ServidorWeb): Int = servidor.respuestasModulos.size
-  private fun cantidadPedidosOk(servidor: ServidorWeb): Int = servidor.respuestasModulos.filter{ r->r.codigo == CodigoHttp.OK }.size
+  fun porcentajeDeRespuestaExitosa() = cantidadPedidosOk()*100/cantidadDePedidos()
+  private fun cantidadDePedidos(): Int = respuestasAPedidos.size
+  private fun cantidadPedidosOk(): Int = respuestasAPedidos.filter{ r->r.codigo == CodigoHttp.OK }.size
 }
 
-object AnalizadorDeIPSospechosa{
+object AnalizadorDeIPSospechosa: Analizador{
+  override val respuestasAPedidos:MutableList<Respuesta> = mutableListOf()
+
   // cuántos pedidos realizó una cierta IP sospechosa
   fun pedidosIpRara(servidor: ServidorWeb, ipRara:String) = servidor.pedidoDeIPSospechosa.filter { p->p.ip == ipRara }
-  fun pedidosIPSospechosas(servidor: ServidorWeb, ipRara:String) = pedidosIpRara(servidor, ipRara).size
+  fun cantidadPedidosIPSospechosas(servidor: ServidorWeb, ipRara:String) = pedidosIpRara(servidor, ipRara).size
 
   // cuál fue el módulo más consultado por todas las IPs sospechosas
 
-  fun moduloMasConsultados(){}
+  fun moduloMasConsultados(){
+    //return servidor.modulosHabilitados.filter
+  }
 
   // el conjunto de IPs sospechosas que requirieron una cierta ruta.
   fun pedidosQueBuscaronRuta(servidor: ServidorWeb, ruta:String):List<Pedido> = servidor.pedidoDeIPSospechosa.filter { p->p.ruta() == ruta }
